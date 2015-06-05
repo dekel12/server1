@@ -9,7 +9,9 @@
   "author": "dekel@Codletech.net",
   "license": "ISC",
   "dependencies": {
+    "async": "^1.2.0",
     "express": "^4.12.4",
-    "mongoose": "^4.0.4"
+    "mongoose": "^4.0.4",
+    "underscore": "^1.8.3"
   }
 }
