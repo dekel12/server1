@@ -25,7 +25,7 @@ var productSchema = new Schema({
     extraField2: String,
     extraField3: String,
     extraField4: String,
-    wasUpdated: Boolean
+    lastUpdate: Date
 });
 
 var categorySchema = new Schema({
@@ -33,7 +33,11 @@ var categorySchema = new Schema({
     path: String,
     name: String,
     products: [productSchema],
-    wasUpdated: Boolean
+    lastUpdate: Date,
+	extraField1: String,
+	extraField2: String,
+	extraField3: String,
+	extraField4: String
 });
 
 

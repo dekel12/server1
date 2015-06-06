@@ -3,6 +3,12 @@ var schemas = require('./schemas.js');
 var fs = require('fs');
 var _ = require('underscore');
 var async = require('async');
+var router = express();
+var bodyParser = require('body-parser');
+
+router.use(bodyParser.json()); // for parsing application/json
+router.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
 
 // this will cache the categories so the DB should be less loaded. also, this prevents outdated data due to asynchronous calls.
 var cachedCategories = {};
@@ -23,6 +29,7 @@ function updateCategories(callback) {
         if (err) {
             throw err;
         }
+        // for each line, json.parse it.
         var categoriesArray = _.map(data.toString().split('\n'), function (categoryString) {
             try {
                 return JSON.parse(categoryString)
@@ -31,13 +38,17 @@ function updateCategories(callback) {
                 return undefined;
             }
         });
+        // for each category
         for (var i = 0; i < categoriesArray.length; i++) {
             if (categoriesArray[i]) (function (i) {
+                // find a category by its url.
                 schemas.Category.findOne({url: categoriesArray[i].url}, function (err, categoryDoc) {
                     if (err) {
                         throw err;
                     }
+                    // if one hasn't been found
                     if (!categoryDoc) {
+                        // create a new one and save it
                         var newCategory = new schemas.Category(categoriesArray[i]);
                         return newCategory.save(function (err) {
                             if (err) throw err;
@@ -45,6 +56,7 @@ function updateCategories(callback) {
                     }
                     // This category already exists. update it in the DB
                     copyObject(categoriesArray[i], categoryDoc);
+                    categoryDoc.lastUpdate = Date.now();
                     categoryDoc.save(function (err) {
                         if (err) throw err;
                     });
@@ -54,12 +66,24 @@ function updateCategories(callback) {
     });
 }
 
-function updateProductInCategory(categoryDoc, product){
+function updateProductInCategory(categoryDoc, product, id){
+    // search this product in the "products" array in a category. update if found, else push it to the array.
+    //optional param: id. if id is defined, search category for product by id.
     var productFoundInCategory = false;
+    product.lastUpdate = Date.now();
     for (var j = 0; j < categoryDoc.products.length  && !productFoundInCategory; j++) {
-        if (categoryDoc.products[j].url === product.url) {
-            categoryDoc.products[j] = product;
-            productFoundInCategory = true;
+        if(!id) {
+            if (categoryDoc.products[j].url === product.url) {
+                copyObject(product, categoryDoc.products[j]);
+                productFoundInCategory = true;
+            }
+        }
+        else{
+            // we put "==" instead of "===" because categoryDoc.products[j]._id's type is "ObjectId" while typeof id is String.
+            if (log(log(categoryDoc.products[j]._id) == log(id))) {
+                copyObject(product, categoryDoc.products[j]);
+                productFoundInCategory = true;
+            }
         }
     }
     if (!productFoundInCategory){
@@ -71,6 +95,7 @@ function updateProductInCategory(categoryDoc, product){
 function updateProducts(callback) {
     cachedCategories = {};
     fs.readFile('./amztop100prod', function (err, data) {
+        // json.parse the lines in the file
         var productsArray = _.map(data.toString().split('\n'), function (productString) {
             try {
                 return JSON.parse(productString)
@@ -79,6 +104,7 @@ function updateProducts(callback) {
                 return undefined;
             }
         });
+        // create an array of functions, that each of them search the category of a specific product in the chache/DB.
         var searchDBforProductsFunctions = _.map(productsArray,function(product){
             if (!product)
                 return function(callback){callback()};
@@ -102,6 +128,7 @@ function updateProducts(callback) {
                 }
             };
         });
+        // execute those functions in parallel, and in the end save them all from the cache.
         async.parallel(searchDBforProductsFunctions, function(err, results){
             _.each(cachedCategories, function(categoryDoc){
                 categoryDoc.save(function(err){
@@ -111,3 +138,72 @@ function updateProducts(callback) {
         });
     });
 }
+
+router.get('/products', function(req, res, next){
+    schemas.Category.find({}, function(err, categories){
+        var resultProducts = [];
+        _.each(categories, function(category){
+            _.each(category.products, function(product){
+                resultProducts.push(product);
+            });
+        });
+        res.send(resultProducts);
+    });
+});
+
+router.get('/categories', function(req, res){
+    schemas.Category.find({}, function(err, categories){
+        res.send(categories);
+    });
+});
+
+router.put('/category/:id', function(req, res, next) {
+    console.log(req.body);
+    log(typeof req.body);
+    schemas.Category.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
+        if (err) return next(err);
+        res.json(post);
+    });
+});
+
+//router.put('/product/:id', function(req, res, next) {
+//    schemas.Category.find({name: req.body.category}, function(err, category){
+//        var wasProductFound = false;
+//        _.each(category.products, function(product){
+//            if (product._id === req.params.id) {
+//                copyObject(req.body, product);
+//                wasProductFound = true;
+//            }
+//        });
+//        if (wasProductFound){
+//            category.save(function(){
+//                res.send();
+//            });
+//        }
+//        else {
+//            res.status(400);
+//            res.send('Error: No product was found to update');
+//        }
+//    });
+//});
+
+router.put('/product/:id', function(req, res, next) {
+    schemas.Category.findOne({"products._id": req.params.id}, function(err, categoryOfTheProduct){
+        updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
+        categoryOfTheProduct.save(function(err){
+            if(err) throw err;
+            res.send('OK');
+        });
+    });
+});
+
+//updateCategories();
+//updateProducts();
+var server = router.listen(8080, function () {
+
+    var host = server.address().address;
+    var port = server.address().port;
+
+    console.log('Example app listening at http://%s:%s', host, port);
+
+});
