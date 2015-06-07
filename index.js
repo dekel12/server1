@@ -25,7 +25,7 @@ function log(a) {
 }
 
 function updateCategories(callback) {
-    fs.readFile('./amztop100cat', function (err, data) {
+    fs.readFile('./categories', function (err, data) {
         if (err) {
             // if no file was found, no need to panic, just return.
             return;
@@ -97,7 +97,7 @@ function updateProductInCategory(categoryDoc, product, id){
 
 function updateProducts(callback) {
     cachedCategories = {};
-    fs.readFile('./amztop100prod', function (err, data) {
+    fs.readFile('./products', function (err, data) {
         if(err){
             return log(err);
         }
@@ -195,6 +195,20 @@ router.put('/product/:id', function(req, res, next) {
             res.send('OK');
         });
     });
+});
+
+router.get('/update', function(req, res){
+    //update categories and then update products
+    updateCategories(function(){
+        updateProducts(function(){
+            res.send('OK');
+        });
+    });
+});
+
+router.get('/shutdown', function(req, res){
+    //shutdown server
+    process.exit(0);
 });
 
 //updateCategories();
