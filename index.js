@@ -127,7 +127,7 @@ function updateProducts(callback) {
                 return function(callback){callback()};
             return function (callback){
                 if (!cachedCategories[product.category]) {
-                    schemas.Category.findOne({name: product.category}, function (err, categoryDoc) {
+                    schemas.Category.findOne({path: product.category_path}, function (err, categoryDoc) {
                         if (err) {
                             callback();
                             return log(err);
@@ -192,6 +192,16 @@ router.put('/category/:id', function(req, res, next) {
             return res.send(err);
         }
         res.json(post);
+    });
+});
+
+router.post('/category', function(req, res, next) {
+    schemas.Category.find({path: req.body.path}, function (err, categoryDoc) {
+        if (err || !categoryDoc) {
+            res.status(400);
+            return res.send(err);
+        }
+        res.jsonp(categoryDoc);
     });
 });
 
