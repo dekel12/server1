@@ -13,6 +13,7 @@
     "body-parser": "^1.12.4",
     "express": "^4.12.4",
     "mongoose": "^4.0.4",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "bson": "~0.3.2"
   }
 }

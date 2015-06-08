@@ -28,7 +28,7 @@ function updateCategories(callback) {
     fs.readFile('./categories', function (err, data) {
         if (err) {
             // if no file was found, no need to panic, just return.
-            return;
+            return callback();
         }
         // for each line, json.parse it.
         var categoriesArray = _.map(data.toString().split('\n'), function (categoryString) {
@@ -52,16 +52,20 @@ function updateCategories(callback) {
                         // create a new one and save it
                         var newCategory = new schemas.Category(categoriesArray[i]);
                         return newCategory.save(function (err) {
+log(newCategory.url);
                             callback();
-                            return log(err);
+                            if (err)
+                                log(err);
                         });
                     }
                     // This category already exists. update it in the DB
                     copyObject(categoriesArray[i], categoryDoc);
                     categoryDoc.lastUpdate = Date.now();
                     categoryDoc.save(function (err) {
+log(categoryDoc.url);
                         callback();
-                        return log(err);
+                        if (err)
+                            log(err);
                     });
                 });
             })(i);
@@ -99,7 +103,8 @@ function updateProducts(callback) {
     cachedCategories = {};
     fs.readFile('./products', function (err, data) {
         if(err){
-            return log(err);
+            log(err);
+            return callback();
         }
         // json.parse the lines in the file
         var productsArray = _.map(data.toString().split('\n'), function (productString) {
@@ -138,8 +143,10 @@ function updateProducts(callback) {
         async.parallel(searchDBforProductsFunctions, function(err, results){
             _.each(cachedCategories, function(categoryDoc){
                 categoryDoc.save(function(err){
+log(categoryDoc.url);
+                    if (err)
+                        log(err);
                     callback();
-                    return log(err);
                 });
             });
         });
@@ -213,7 +220,7 @@ router.get('/shutdown', function(req, res){
 
 //updateCategories();
 //updateProducts();
-var server = router.listen(8080, function () {
+var server = router.listen(3000, function () {
 
     var host = server.address().address;
     var port = server.address().port;
