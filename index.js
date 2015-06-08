@@ -40,36 +40,42 @@ function updateCategories(callback) {
             }
         });
         // for each category
-        for (var i = 0; i < categoriesArray.length; i++) {
-            if (categoriesArray[i]) (function (i) {
+        var categoriesUploadFunctions = _.map(categoriesArray, function(category){
+            if (!category)
+                return function(callback){callback()};
+            return function(callback){
                 // find a category by its url.
-                schemas.Category.findOne({url: categoriesArray[i].url}, function (err, categoryDoc) {
+                schemas.Category.findOne({url: category.url}, function (err, categoryDoc) {
                     if (err) {
-                        return log(err);
+                        log(err);
+                        return callback();
                     }
                     // if one hasn't been found
                     if (!categoryDoc) {
                         // create a new one and save it
-                        var newCategory = new schemas.Category(categoriesArray[i]);
+                        var newCategory = new schemas.Category(category);
                         return newCategory.save(function (err) {
-log(newCategory.url);
-                            callback();
                             if (err)
                                 log(err);
+                            callback();
                         });
                     }
                     // This category already exists. update it in the DB
-                    copyObject(categoriesArray[i], categoryDoc);
+                    copyObject(category, categoryDoc);
                     categoryDoc.lastUpdate = Date.now();
                     categoryDoc.save(function (err) {
-log(categoryDoc.url);
-                        callback();
                         if (err)
                             log(err);
+                        callback();
                     });
                 });
-            })(i);
-        }
+            };
+        });
+        async.parallel(categoriesUploadFunctions, function(err, results){
+            if (err)
+                log(err);
+            callback();
+        });
     });
 }
 
@@ -87,7 +93,7 @@ function updateProductInCategory(categoryDoc, product, id){
         }
         else{
             // we put "==" instead of "===" because categoryDoc.products[j]._id's type is "ObjectId" while typeof id is String.
-            if (log(log(categoryDoc.products[j]._id) == log(id))) {
+            if (categoryDoc.products[j]._id == id) {
                 copyObject(product, categoryDoc.products[j]);
                 productFoundInCategory = true;
             }
@@ -123,6 +129,7 @@ function updateProducts(callback) {
                 if (!cachedCategories[product.category]) {
                     schemas.Category.findOne({name: product.category}, function (err, categoryDoc) {
                         if (err) {
+                            callback();
                             return log(err);
                         }
                         if (!categoryDoc) {
@@ -143,12 +150,11 @@ function updateProducts(callback) {
         async.parallel(searchDBforProductsFunctions, function(err, results){
             _.each(cachedCategories, function(categoryDoc){
                 categoryDoc.save(function(err){
-log(categoryDoc.url);
                     if (err)
                         log(err);
-                    callback();
                 });
             });
+            callback();
         });
     });
 }
@@ -180,8 +186,6 @@ router.get('/categories', function(req, res){
 });
 
 router.put('/category/:id', function(req, res, next) {
-    console.log(req.body);
-    log(typeof req.body);
     schemas.Category.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
         if (err) {
             res.status(400);
