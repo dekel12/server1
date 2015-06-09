@@ -253,17 +253,7 @@ router.get('/update', function(req, res){
     updateCategories(function(){
         updateProducts(function(){
             fs.rename('./products','./old/products'+Date.now(),function(err){
-                if (err) {
-                    res.status(400);
-                    //wouldn't want to return here. that's called giving up.
-                    res.send(err);
-                }
                 fs.rename('./categories','./old/categories'+Date.now(),function(err){
-                    if (err) {
-                        res.status(400);
-                        //wouldn't want to return here. that's called giving up.
-                        return res.send(err);
-                    }
                     res.send('OK');
                 });
             });
