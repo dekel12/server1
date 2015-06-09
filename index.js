@@ -218,6 +218,19 @@ router.put('/product/:id', function(req, res, next) {
     });
 });
 
+router.put('/productbyurl/:url', function(req, res, next) {
+    schemas.Category.findOne({"products.url": req.params.url}, function(err, categoryOfTheProduct){
+        updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
+        categoryOfTheProduct.save(function(err){
+            if (err) {
+                res.status(400);
+                return res.send(err);
+            }
+            res.send('OK');
+        });
+    });
+});
+
 router.get('/update', function(req, res){
     //update categories and then update products
     updateCategories(function(){
