@@ -28,6 +28,7 @@ function updateCategories(callback) {
     fs.readFile('./categories', function (err, data) {
         if (err) {
             // if no file was found, no need to panic, just return.
+            log(err);
             return callback();
         }
         // for each line, json.parse it.
@@ -207,6 +208,14 @@ router.post('/category', function(req, res, next) {
 
 router.put('/product/:id', function(req, res, next) {
     schemas.Category.findOne({"products._id": req.params.id}, function(err, categoryOfTheProduct){
+        if (err){
+            res.status(400);
+            return res.send(err);
+        }
+        if (!categoryOfTheProduct){
+            res.status(400);
+            return res.send('Error: No category was found to contain that product');
+        }
         updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
         categoryOfTheProduct.save(function(err){
             if (err) {
@@ -220,6 +229,14 @@ router.put('/product/:id', function(req, res, next) {
 
 router.put('/productbyurl/:url', function(req, res, next) {
     schemas.Category.findOne({"products.url": req.params.url}, function(err, categoryOfTheProduct){
+        if (err){
+            res.status(400);
+            return res.send(err);
+        }
+        if (!categoryOfTheProduct){
+            res.status(400);
+            return res.send('Error: No category was found to contain that product');
+        }
         updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
         categoryOfTheProduct.save(function(err){
             if (err) {
@@ -235,7 +252,21 @@ router.get('/update', function(req, res){
     //update categories and then update products
     updateCategories(function(){
         updateProducts(function(){
-            res.send('OK');
+            fs.rename('./products','./old/products'+Date.now(),function(err){
+                if (err) {
+                    res.status(400);
+                    //wouldn't want to return here. that's called giving up.
+                    res.send(err);
+                }
+                fs.rename('./categories','./old/categories'+Date.now(),function(err){
+                    if (err) {
+                        res.status(400);
+                        //wouldn't want to return here. that's called giving up.
+                        return res.send(err);
+                    }
+                    res.send('OK');
+                });
+            });
         });
     });
 });
