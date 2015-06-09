@@ -103,7 +103,7 @@ function updateProductInCategory(categoryDoc, product, id){
     if (!productFoundInCategory){
         categoryDoc.products.push(product);
     }
-    cachedCategories[product.category] = categoryDoc;
+    cachedCategories[product.category_path] = categoryDoc;
 }
 
 function updateProducts(callback) {
@@ -127,7 +127,7 @@ function updateProducts(callback) {
             if (!product)
                 return function(callback){callback()};
             return function (callback){
-                if (!cachedCategories[product.category]) {
+                if (!cachedCategories[product.category_path]) {
                     schemas.Category.findOne({path: product.category_path}, function (err, categoryDoc) {
                         if (err) {
                             callback();
@@ -142,7 +142,7 @@ function updateProducts(callback) {
                     });
                 }
                 else {
-                    updateProductInCategory(cachedCategories[product.category], product);
+                    updateProductInCategory(cachedCategories[product.category_path], product);
                     return callback();
                 }
             };
@@ -159,6 +159,8 @@ function updateProducts(callback) {
         });
     });
 }
+
+// API
 
 router.get('/products', function(req, res, next){
     schemas.Category.find({}, function(err, categories){
