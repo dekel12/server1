@@ -270,7 +270,7 @@ router.get('/shutdown', function(req, res){
 
 //updateCategories();
 //updateProducts();
-var server = router.listen(3000, function () {
+var server = router.listen(80, function () {
 
     var host = server.address().address;
     var port = server.address().port;
