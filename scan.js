@@ -44,7 +44,7 @@ function log(a) {
 
 function updateCategories(callback) {
     var catPath = getMostRecentFileName('../amazon_bestsellers_categories');
-    fs.readFile(catPath, function (err, data) {
+    fs.readFile('../amazon_bestsellers_categories'+catPath, function (err, data) {
         if (err) {
             // if no file was found, no need to panic, just return.
             log(err);
@@ -138,7 +138,7 @@ function updateProductInCategory(categoryDoc, product, id){
 function updateProducts(callback) {
     var prodPath = getMostRecentFileName('../amazon_bestsellers_top10_product');
     cachedCategories = {};
-    fs.readFile(prodPath, function (err, data) {
+    fs.readFile('../amazon_bestsellers_top10_product'+prodPath, function (err, data) {
         if(err){
             log(err);
             return callback();
