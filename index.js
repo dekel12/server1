@@ -208,7 +208,7 @@ router.get('/products', function(req, res, next){
 
 // get all categories
 router.get('/categories', function(req, res){
-    schemas.Category.find({},'url path name lastUpdate', function(err, categories){ 
+    schemas.Category.find({},'url path name lastUpdate', function(err, categories){
         if (err) {
             res.status(400);
             return res.send(err);
@@ -224,7 +224,13 @@ router.post('/category/:id', function(req, res, next) {
             res.status(400);
             return res.send(err);
         }
-        res.json(post);
+        post.save(function(err, p){
+            if (err) {
+                res.status(400);
+                return res.send(err);
+            }
+            res.send(p);
+        });
     });
 });
 
