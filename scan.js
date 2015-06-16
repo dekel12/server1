@@ -1,3 +1,6 @@
+/**
+ * Created by Tal on 16/06/2015.
+ */
 var express = require('express');
 var schemas = require('./schemas.js');
 var fs = require('fs');
@@ -9,15 +12,6 @@ var bodyParser = require('body-parser');
 router.use(bodyParser.json()); // for parsing application/json
 router.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-var allowCrossDomain = function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-
-    next();
-}
-
-router.use(allowCrossDomain);
 // this will cache the categories so the DB should be less loaded. also, this prevents outdated data due to asynchronous calls.
 var cachedCategories = {};
 
@@ -178,164 +172,5 @@ function updateProducts(callback) {
     });
 }
 
-// API
-// get all products
-router.get('/products', function(req, res, next){
-    schemas.Category.find({}, function(err, categories){
-        if (err) {
-            res.status(400);
-            return res.send(err);
-        }
-        var resultProducts = [];
-        _.each(categories, function(category){
-            _.each(category.products, function(product){
-                resultProducts.push(product);
-            });
-        });
-        res.send(resultProducts);
-    });
-});
-
-// get all categories
-router.get('/categories', function(req, res){
-    schemas.Category.find({}, function(err, categories){
-        if (err) {
-            res.status(400);
-            return res.send(err);
-        }
-        res.send(categories);
-    });
-});
-
-// update category by id
-router.post('/category/:id', function(req, res, next) {
-    schemas.Category.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
-        if (err) {
-            res.status(400);
-            return res.send(err);
-        }
-        res.json(post);
-    });
-});
-
-router.put('/category/:id', function(req, res, next) {
-    schemas.Category.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
-        if (err) {
-            res.status(400);
-            return res.send(err);
-        }
-        res.json(post);
-    });
-});
-
-// get category by path
-router.post('/category', function(req, res, next) {
-    schemas.Category.find({path: req.body.path}, function (err, categoryDoc) {
-        if (err || !categoryDoc) {
-            res.status(400);
-            return res.send(err);
-        }
-        res.jsonp(categoryDoc);
-    });
-});
-
-router.put('/product/:id', function(req, res, next) {
-    schemas.Category.findOne({"products._id": req.params.id}, function(err, categoryOfTheProduct){
-        if (err){
-            res.status(400);
-            return res.send(err);
-        }
-        if (!categoryOfTheProduct){
-            res.status(400);
-            return res.send('Error: No category was found to contain that product');
-        }
-        updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
-        categoryOfTheProduct.save(function(err){
-            if (err) {
-                res.status(400);
-                return res.send(err);
-            }
-            res.send('OK');
-        });
-    });
-});
-
-router.post('/product/:id', function(req, res, next) {
-    schemas.Category.findOne({"products._id": req.params.id}, function(err, categoryOfTheProduct){
-        if (err){
-            res.status(400);
-            return res.send(err);
-        }
-        if (!categoryOfTheProduct){
-            res.status(400);
-            return res.send('Error: No category was found to contain that product');
-        }
-        updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
-        categoryOfTheProduct.save(function(err){
-            if (err) {
-                res.status(400);
-                return res.send(err);
-            }
-            res.send('OK');
-        });
-    });
-});
-
-router.get('/product/:id', function(req, res, next) {
-    schemas.Category.findOne({"products._id": req.params.id}, function(err, categoryOfTheProduct){
-        if (err){
-            res.status(400);
-            return res.send(err);
-        }
-        if (!categoryOfTheProduct){
-            res.status(400);
-            return res.send('Error: No category was found to contain that product');
-        }
-        return res.send(findProductInCat(categoryOfTheProduct, req.params.id));
-    });
-});
-
-router.put('/productbyurl/:url', function(req, res, next) {
-    schemas.Category.findOne({"products.url": req.params.url}, function(err, categoryOfTheProduct){
-        if (err){
-            res.status(400);
-            return res.send(err);
-        }
-        if (!categoryOfTheProduct){
-            res.status(400);
-            return res.send('Error: No category was found to contain that product');
-        }
-        updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
-        categoryOfTheProduct.save(function(err){
-            if (err) {
-                res.status(400);
-                return res.send(err);
-            }
-            res.send('OK');
-        });
-    });
-});
-
-router.get('/update', function(req, res){
-    //update categories and then update products
-    updateCategories(function(){
-        updateProducts(function(){
-            fs.rename('./products','./old/products'+Date.now(),function(err){
-                fs.rename('./categories','./old/categories'+Date.now(),function(err){
-                    res.send('OK');
-                });
-            });
-        });
-    });
-});
-
-
-var server = router.listen(3000, function () {
-
-    var host = server.address().address;
-    var port = server.address().port;
-
-    console.log('Example app listening at http://%s:%s', host, port);
-
-});
-
+updateCategories();
+updateProducts();
