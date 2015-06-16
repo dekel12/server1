@@ -305,6 +305,20 @@ router.get('/product/:id', function(req, res, next) {
     });
 });
 
+router.get('/category/:id', function(req, res, next) {
+    schemas.Category.findOne({"_id": req.params.id}, function(err, category){
+        if (err){
+            res.status(400);
+            return res.send(err);
+        }
+        if (!category){
+            res.status(400);
+            return res.send('Error: No category was found to contain that product');
+        }
+        return res.send(category);
+    });
+});
+
 router.put('/productbyurl/:url', function(req, res, next) {
     schemas.Category.findOne({"products.url": req.params.url}, function(err, categoryOfTheProduct){
         if (err){
