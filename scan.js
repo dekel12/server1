@@ -43,6 +43,7 @@ function log(a) {
 }
 
 function updateCategories(callback) {
+    log('started scan categories');
     var catPath = getMostRecentFileName('../amazon_bestsellers_categories');
     fs.readFile('../amazon_bestsellers_categories/'+catPath, function (err, data) {
         if (err) {
@@ -56,6 +57,7 @@ function updateCategories(callback) {
                 return JSON.parse(categoryString)
             }
             catch (err) {
+                log('error: cannot parse:' + categoryString + ' \n cause: ' + err);
                 return undefined;
             }
         });
@@ -67,6 +69,7 @@ function updateCategories(callback) {
                 // find a category by its url.
                 schemas.Category.findOne({url: category.url}, function (err, categoryDoc) {
                     if (err) {
+                        log('cannot find category:' + category.url);
                         log(err);
                         return callback();
                     }
