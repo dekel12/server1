@@ -208,7 +208,7 @@ router.get('/products', function(req, res, next){
 
 // get all categories
 router.get('/categories', function(req, res){
-    schemas.Category.find({}, function(err, categories){
+    schemas.Category.find({},'url path name lastUpdate', function(err, categories){
         if (err) {
             res.status(400);
             return res.send(err);
@@ -313,7 +313,7 @@ router.get('/category/:id', function(req, res, next) {
         }
         if (!category){
             res.status(400);
-            return res.send('Error: No category was found to contain that product');
+            return res.send('Error: No category was found');
         }
         return res.send(category);
     });
