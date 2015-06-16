@@ -4,10 +4,26 @@
 var express = require('express');
 var schemas = require('./schemas.js');
 var fs = require('fs');
+var path = require('path');
 var _ = require('underscore');
 var async = require('async');
 var router = express();
 var bodyParser = require('body-parser');
+
+
+// Return only base file name without dir
+function getMostRecentFileName(dir) {
+    var files = fs.readdirSync(dir);
+
+    // use underscore for max()
+    return _.max(files, function (f) {
+        var fullpath = path.join(dir, f);
+
+        // ctime = creation time is used
+        // replace with mtime for modification time
+        return fs.statSync(fullpath).ctime;
+    });
+}
 
 router.use(bodyParser.json()); // for parsing application/json
 router.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
@@ -27,7 +43,8 @@ function log(a) {
 }
 
 function updateCategories(callback) {
-    fs.readFile('./categories', function (err, data) {
+    var catPath = getMostRecentFileName('../amazon_bestsellers_categories');
+    fs.readFile(catPath, function (err, data) {
         if (err) {
             // if no file was found, no need to panic, just return.
             log(err);
@@ -119,8 +136,9 @@ function updateProductInCategory(categoryDoc, product, id){
 }
 
 function updateProducts(callback) {
+    var prodPath = getMostRecentFileName('../amazon_bestsellers_top10_product');
     cachedCategories = {};
-    fs.readFile('./products', function (err, data) {
+    fs.readFile(prodPath, function (err, data) {
         if(err){
             log(err);
             return callback();
