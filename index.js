@@ -32,6 +32,16 @@ function log(a) {
     return a;
 }
 
+var allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+    next();
+}
+
+router.use(allowCrossDomain);
+
 function updateCategories(callback) {
     fs.readFile('./categories', function (err, data) {
         if (err) {
@@ -338,4 +348,3 @@ var server = router.listen(3000, function () {
     console.log('Example app listening at http://%s:%s', host, port);
 
 });
-
