@@ -101,7 +101,7 @@ function updateCategories(callback) {
 
 function findProductInCat(categoryDoc, prodID) {
     for (var j = 0; j < categoryDoc.products.length; j++) {
-        if (categoryDoc.products[j]._id == id) {
+        if (categoryDoc.products[j]._id == prodID) {
             return categoryDoc.products[j];
         }
     }
