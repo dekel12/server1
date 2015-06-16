@@ -5,6 +5,7 @@ var _ = require('underscore');
 var async = require('async');
 var router = express();
 var bodyParser = require('body-parser');
+var ObjectId = require('mongodb').ObjectID;
 
 router.use(bodyParser.json()); // for parsing application/json
 router.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
