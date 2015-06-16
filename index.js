@@ -252,12 +252,11 @@ router.post('/category/:id', function(req, res, next) {
         });
     });*/
 
-    schemas.Category.update({"_id": req.params.id}, req.body , function(err, model) {
-        if (err) {
-            res.status(400);
-            return res.send(err);
-        }
-        res.send(model);
+    schemas.Category.findOne({"_id": req.params.id}, function(err, category){
+        copyObject(req.body, category);
+        category.save(function(err, cat){
+            return res.send(cat);
+        });
     });
 });
 
