@@ -191,7 +191,7 @@ function updateProducts(callback) {
 // API
 // get all products
 router.get('/products', function(req, res, next){
-    schemas.Category.find({}, function(err, categories){
+    schemas.Category.find({},'url path name products.name products.url products.brand products.asin', function(err, categories){
         if (err) {
             res.status(400);
             return res.send(err);
