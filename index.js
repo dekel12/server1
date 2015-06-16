@@ -219,7 +219,7 @@ router.get('/categories', function(req, res){
 
 // update category by id
 router.post('/category/:id', function(req, res, next) {
-    schemas.Category.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
+   /* schemas.Category.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
         if (err) {
             res.status(400);
             return res.send(err);
@@ -232,6 +232,32 @@ router.post('/category/:id', function(req, res, next) {
             console.log(req);
             res.send(p);
         });
+    });*/
+   /* schemas.Category.findOne({"products._id": req.params.id}, function(err, categoryOfTheProduct){
+        if (err){
+            res.status(400);
+            return res.send(err);
+        }
+        if (!categoryOfTheProduct){
+            res.status(400);
+            return res.send('Error: No category was found to contain that product');
+        }
+        updateProductInCategory(categoryOfTheProduct, req.body, req.params.id);
+        categoryOfTheProduct.save(function(err){
+            if (err) {
+                res.status(400);
+                return res.send(err);
+            }
+            res.send('OK');
+        });
+    });*/
+
+    schemas.Category.update({"_id": ObjectId.fromString(req.params.id)}, req.body , function(err, model) {
+        if (err) {
+            res.status(400);
+            return res.send(err);
+        }
+        res.send(model);
     });
 });
 
