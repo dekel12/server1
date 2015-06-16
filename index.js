@@ -229,7 +229,7 @@ router.post('/category/:id', function(req, res, next) {
                 res.status(400);
                 return res.send(err);
             }
-            console.log(req.body);
+            console.log(req);
             res.send(p);
         });
     });
