@@ -5,7 +5,6 @@ var _ = require('underscore');
 var async = require('async');
 var router = express();
 var bodyParser = require('body-parser');
-var ObjectId = require('mongoose').ObjectID;
 
 router.use(bodyParser.json()); // for parsing application/json
 router.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
@@ -253,7 +252,7 @@ router.post('/category/:id', function(req, res, next) {
         });
     });*/
 
-    schemas.Category.update({"_id": ObjectId.fromString(req.params.id)}, req.body , function(err, model) {
+    schemas.Category.update({"_id": req.params.id}, req.body , function(err, model) {
         if (err) {
             res.status(400);
             return res.send(err);
