@@ -10,6 +10,8 @@ var async = require('async');
 var router = express();
 var bodyParser = require('body-parser');
 
+var prodPath = '../amazon_bestsellers_top10_product/'+getMostRecentFileName('../amazon_bestsellers_top10_product');
+var catPath = '../amazon_bestsellers_categories/'+getMostRecentFileName('../amazon_bestsellers_categories');
 
 // Return only base file name without dir
 function getMostRecentFileName(dir) {
@@ -44,8 +46,7 @@ function log(a) {
 
 function updateCategories(callback) {
     log('started scan categories');
-    var catPath = getMostRecentFileName('../amazon_bestsellers_categories');
-    fs.readFile('../amazon_bestsellers_categories/'+catPath, function (err, data) {
+    fs.readFile(catPath, function (err, data) {
         if (err) {
             // if no file was found, no need to panic, just return.
             log(err);
@@ -139,9 +140,9 @@ function updateProductInCategory(categoryDoc, product, id){
 }
 
 function updateProducts(callback) {
-    var prodPath = getMostRecentFileName('../amazon_bestsellers_top10_product');
+
     cachedCategories = {};
-    fs.readFile('../amazon_bestsellers_top10_product/'+prodPath, function (err, data) {
+    fs.readFile(prodPath, function (err, data) {
         if(err){
             log(err);
             return callback();
@@ -193,5 +194,12 @@ function updateProducts(callback) {
     });
 }
 
-updateCategories();
-updateProducts();
+updateCategories(function(){
+    updateProducts(function(){
+        fs.rename(prodPath,'./old/products'+Date.now(),function(err){
+            fs.rename(catPath,'./old/categories'+Date.now(),function(err){
+                res.send('finished job');
+            });
+        });
+    });
+});
