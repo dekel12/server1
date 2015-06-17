@@ -198,7 +198,7 @@ updateCategories(function(){
     updateProducts(function(){
         fs.rename(prodPath,'./old/products'+Date.now(),function(err){
             fs.rename(catPath,'./old/categories'+Date.now(),function(err){
-                res.send('finished job');
+                console.log('finished job');
             });
         });
     });
