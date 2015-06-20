@@ -34,12 +34,13 @@ var categorySchema = new Schema({
     name: String,
     products: [productSchema],
     lastUpdate: Date,
+	editorChoice: String,
 	extraField1: String,
 	extraField2: String,
 	extraField3: String,
 	extraField4: String
 });
-
+ 
 
 exports.Product = mongoose.model('Product', productSchema);
 exports.Category = mongoose.model('Category', categorySchema);
